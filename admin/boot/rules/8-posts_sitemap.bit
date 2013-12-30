@@ -1,0 +1,38 @@
+<?php
+/*
+ * Nibbleblog
+ * http://www.nibbleblog.com
+
+ * Require
+ * $settings
+ * $translit_enable
+ * $_DB_POST
+ * $_DB_CATEGORIES
+ * $_DB_PAGES
+ * $_DB_TAGS
+
+ * Return
+ * (array) $posts
+*/
+
+global $categories;
+
+$posts = $_DB_POST->get_list_by_page( array('page'=>0, 'amount'=>POSTS_AMOUNT ) );
+$pages = $_DB_PAGES->get_all();
+$tags = $_DB_TAGS->get_cloud();
+
+foreach($posts as $key=>$value)
+{
+	// Priority
+	// $priority = $_DB_POST->get( array('id'=>$posts[$key]['id_priority']) );
+	// $posts[$key]['priority'] = $priority['number']
+
+	// Permalink
+	$posts[$key]['permalink'] = Url::post($posts[$key]);
+}
+
+foreach($pages as $key=>$value)
+{
+	$pages[$key]['permalink'] = Url::page($pages[$key]);
+}
+?>
