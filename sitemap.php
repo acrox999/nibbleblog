@@ -62,16 +62,17 @@ foreach($categories as $category)
 	$rss.= '</url>' . PHP_EOL;
 }
 
-//foreach($tags as $tag)
-//{
-//	$full_link = htmlspecialchars($settings['url'].Url::tag($tag));
-//	
-//	$rss.= '<url>' . PHP_EOL;
-//		$rss.= '<loc>'.$full_link.'</loc>' . PHP_EOL;
-//		$rss.= '<changefreq>daily</changefreq>' . PHP_EOL;
-//		$rss.= '<priority>0.6</priority>' . PHP_EOL;
-//	$rss.= '</url>' . PHP_EOL;
-//}
+foreach($tags as $tag=>$amount)
+{
+	$full_link = htmlspecialchars($settings['url'].Url::tag($tag));
+	$amount = $amount;
+	
+	$rss.= '<url>' . PHP_EOL;
+		$rss.= '<loc>'.$full_link.'</loc>' . PHP_EOL;
+		$rss.= '<changefreq>daily</changefreq>' . PHP_EOL;
+		$rss.= '<priority>0.6</priority>' . PHP_EOL;
+	$rss.= '</url>' . PHP_EOL;
+}
 
 $rss.= '</urlset>';
 

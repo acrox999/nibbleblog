@@ -15,12 +15,11 @@
  * (array) $posts
 */
 
+//Categories
 global $categories;
 
+// Posts
 $posts = $_DB_POST->get_list_by_page( array('page'=>0, 'amount'=>POSTS_AMOUNT ) );
-$pages = $_DB_PAGES->get_all();
-$tags = $_DB_TAGS->get_cloud();
-
 foreach($posts as $key=>$value)
 {
 	// Priority
@@ -31,8 +30,15 @@ foreach($posts as $key=>$value)
 	$posts[$key]['permalink'] = Url::post($posts[$key]);
 }
 
+// Pages
+$pages = $_DB_PAGES->get_all();
 foreach($pages as $key=>$value)
 {
 	$pages[$key]['permalink'] = Url::page($pages[$key]);
 }
+
+// Tags
+global $_DB_TAGS;
+$tags = $_DB_TAGS->get_cloud();
+ksort($tags);
 ?>
