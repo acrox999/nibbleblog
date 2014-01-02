@@ -76,8 +76,9 @@ article > h1{font-size:2.4em;}
 .meta{width:20%;font-size:90%;text-shadow:none;height:5em;padding:0.2em 0.5em;}
 .meta ul{list-style:none;font-weight:400;}
 .comments{background:#ececee;color:#444;text-shadow:1px 1px 0 #fff;padding:0.5em;border-radius:3px;}
-#comment_form{background:#ececee;padding:0.5em 0;margin-bottom:-2em;border-radius:3px;}
-#comment_list h2{width:50%;background:#ececee;text-indent:0.2em;padding:0.1em 0;margin:-1em 0 1em;border-radius:3px;}
+/* Commented these lines to prevent border overflowing in the comments panel */
+/* #comment_form{background:#ececee;padding:0.5em 0;margin-bottom:-2em;border-radius:3px;} */
+/* #comment_list h2{width:50%;background:#ececee;text-indent:0.2em;padding:0.1em 0;margin:-1em 0 1em;border-radius:3px;} */
 #comment_form h2{margin:1em 0;}
 .comment{border-bottom:1px solid #aaa;padding:0.5em 0;margin-bottom:2em;box-shadow:0 1px 0 #fff;}
 .comment .content{width:70%;}
