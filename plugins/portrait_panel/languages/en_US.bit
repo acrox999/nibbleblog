@@ -1,0 +1,16 @@
+<?php
+
+$_PLUGIN_CONFIG['LANG'] = array(
+	'NAME'=>'Portrait Panel',
+	'DESCRIPTION'=>'Shows an image with the character and its origin as the caption.',
+	'CHAR_NAME'=>'Character\'s Name:',
+	'CHAR_NAME_URL'=>'Character\'s Profile:',
+	'CHAR_ORIGIN'=>'Character\'s Origin:',
+	'CHAR_ORIGIN_URL'=>'Link to the character\'s origin page:',
+	'SOURCE'=>'Original source of image:',
+	'UPLOAD'=>'Choose your image: (WARNING: Save changes first before uploading any image or your image won\'t be loaded!)',
+	'UPLOAD_NOTICE'=>'Supported types are: GIF, JPEG and PNG. Uploaded image will not be resized. Aspect ratio will be maintained.',
+	'CHOOSE_TYPE'=>'Choose the type of the image to be uploaded:'
+);
+
+?>
