@@ -1,9 +1,4 @@
 <?php
-
-// Set MagpieRSS Encoding to UTF-8
-define('MAGPIE_INPUT_ENCODING', 'UTF-8');
-define('MAGPIE_OUTPUT_ENCODING', 'UTF-8');
-
 // =====================================================================
 // PLUGIN INFO
 // =====================================================================
@@ -24,8 +19,17 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 
 		$this->fields = array(
 		'username'=>'',
-		'ability_rt'=>'',
-		'amount_rt'=>''
+		'ability_rt'=>'enable',
+		'ability_tar'=>'enable',
+		'ability_tal'=>'enable',
+		'ability_ttr'=>'enable',
+		'amount_rt'=>'10',
+		'amount_tar'=>'10',
+		'amount_tal'=>'10',
+		'amount_ttr'=>'10',
+		'period_tar'=>'overall',
+		'period_tal'=>'overall',
+		'period_ttr'=>'overall'
 		);
 	}
 
@@ -34,20 +38,56 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 		global $Language;
 		
 		// Set Last.FM Username
-		//$html = Html::label(array('content'=>$Language->get('USERNAME')));
-		$html  = Html::label(array('content'=>'Username'));
+		$html  = Html::label(array('content'=>$Language->get('USERNAME')));
 		$html .= Html::input(array('name'=>'username', 'type'=>'text', 'value'=>$this->database('username')));
 		
-		// Show available options
+		// Set Last.FM API Key
+		//$html .= Html::label(array('content'=>$Language->get('API_KEY')));
+		//$html .= Html::input(array('name'=>'api_key', 'type'=>'text', 'value'=>$this->database('api_key')));
+		
 		// Enable or disable Recent Tracks
-		//$html .= Html::label(array('content'=>$Language->get('ability_rt')));
-		$html .= Html::label(array('content'=>'Show Recent Tracks'));
+		$html .= Html::label(array('content'=>$Language->get('RECENT_TRACKS_ABILITY')));
 		$html .= Html::select(array('name'=>'ability_rt'), array('enable'=>'Enable', 'disable'=>'Disable'), $this->database('ability_rt'));
 		
-		// Amount of Recent Tracks (currently disabled, don't know how to parse amount)
-		//$html .= Html::label(array('content'=>$Language->get('amount_rt')));
-		//$html .= Html::label(array('content'=>'Amount of Recent Tracks'));
-		//$html .= Html::select(array('name'=>'amount_rt'), array('1'=>'1', '2'=>'2', '3'=>'3', '4'=>'4', '5'=>'5', '6'=>'6', '7'=>'7', '8'=>'8', '9'=>'9', '10'=>'10'), $this->database('amount_rt'));
+		// Amount of Recent Tracks
+		$html .= Html::label(array('content'=>$Language->get('RECENT_TRACKS_AMOUNT')));
+		$html .= Html::input(array('name'=>'amount_rt', 'type'=>'text', 'value'=>$this->database('amount_rt')));
+		
+		// Enable or disable Top Artists
+		$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_ABILITY')));
+		$html .= Html::select(array('name'=>'ability_tar'), array('enable'=>'Enable', 'disable'=>'Disable'), $this->database('ability_tar'));
+		
+		// Amount of Top Artists
+		$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_AMOUNT')));
+		$html .= Html::input(array('name'=>'amount_tar', 'type'=>'text', 'value'=>$this->database('amount_tar')));
+		
+		// Period of Top Artists
+		$html .= Html::label(array('content'=>$Language->get('PERIOD_TAR')));
+		$html .= Html::select(array('name'=>'period_tar'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3 month'=>'3 months', '6 month'=>'6 months', '12 months'=>'12 months'), $this->database('period_tar'));
+		
+		// Enable or disable Top Albums
+		$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_ABILITY')));
+		$html .= Html::select(array('name'=>'ability_tal'), array('enable'=>'Enable', 'disable'=>'Disable'), $this->database('ability_tal'));
+		
+		// Amount of Top Albums
+		$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_AMOUNT')));
+		$html .= Html::input(array('name'=>'amount_tal', 'type'=>'text', 'value'=>$this->database('amount_tal')));
+		
+		// Period of Top Albums
+		$html .= Html::label(array('content'=>$Language->get('PERIOD_TAL')));
+		$html .= Html::select(array('name'=>'period_tal'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3 month'=>'3 months', '6 month'=>'6 months', '12 months'=>'12 months'), $this->database('period_tal'));
+		
+		// Enable or disable Top Tracks
+		$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_ABILITY')));
+		$html .= Html::select(array('name'=>'ability_ttr'), array('enable'=>'Enable', 'disable'=>'Disable'), $this->database('ability_ttr'));
+		
+		// Amount of Top Tracks
+		$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_AMOUNT')));
+		$html .= Html::input(array('name'=>'amount_ttr', 'type'=>'text', 'value'=>$this->database('amount_ttr')));
+		
+		// Period of Top Tracks
+		$html .= Html::label(array('content'=>$Language->get('PERIOD_TTR')));
+		$html .= Html::select(array('name'=>'period_ttr'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3 month'=>'3 months', '6 month'=>'6 months', '12 months'=>'12 months'), $this->database('period_ttr'));
 		
 		return $html;
 		
@@ -55,33 +95,119 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 	
 	public function blog_body()
 	{
-		require_once('includes/magpierss/rss_fetch.inc');
+		global $Language;
 		
-		if($this->database('amount_rt') <=0) $amount_rt = 1;
-		if($this->database('amount_rt') >10) $amount_rt = 10;
+		// Set Predefined API Key
+		$api = 'b8d95a731d043ce8fae0203dcb3f5f54';
 		
-		// Recent Tracks Feed
-		$rtrss = fetch_rss('http://ws.audioscrobbler.com/1.0/user/'.$this->database('username').'/recenttracks.rss');
+		$html = '<p><a href="http://www.last.fm/user/'.$this->database('username').'">My Last.FM</a></p>';
+		
+		// Recent Tracks
+		$rtxml = simplexml_load_file('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&extended=1&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api);
 		
 		// Show Recent Tracks
 		if($this->database('ability_rt') == 'enable') {
-			//$html  = Html::label('content'=>$Language->get('SHOW_RT'));
-			$html  = Html::label(array('content'=>'<b>Recently Listened Tracks</b>:'));
+			// Now Playing
+			$track  = $rtxml->recenttracks->track[0];
+			$song   = $rtxml->recenttracks->track[0]->name;
+			$artist = $rtxml->recenttracks->track[0]->artist->name;
+			$alink  = $rtxml->recenttracks->track[0]->artist->url;
+			$slink  = $rtxml->recenttracks->track[0]->url;
+			
+			$html .= Html::label(array('content'=>$Language->get('NOW_PLAYING').':'));
+			$html .= '<p style="font-size: smaller"><a href="http://www.last.fm/artist/'.$alink.'" class="lastfm-link">'.$artist.'</a> - <a href="'.$slink.'" class="lastfm-link">'.$song.'</a></p>';
+			
+			// Recently Played Tracks
+			$html .= Html::label(array('content'=>$Language->get('RECENT_TRACKS_MSG').':'));
 			$html .= '<ul class="lastfm">';
-			foreach($rtrss->items as $rt) {
-				$song = htmlspecialchars($rt['title']);
-				$title = utf8_encode($song);
-				$link = $rt['link'];
+
+			foreach($rtxml->recenttracks->track as $track) {
+				$song   = $track->name;
+				$artist = $track->artist->name;
+				$alink  = $track->artist->url;
+				$slink  = $track->url;
 				
 				$html .= '<li class"lastfm-items">';
 				$html .= '<span style="font-size: smaller">';
-				$html .= '<a href="'.$link.'" class="lastfm-link">'.$song.'</a>';
+				$html .= '◕ <a href="http://www.last.fm/artist/'.$alink.'" class="lastfm-link">'.$artist.'</a> - <a href="'.$slink.'" class="lastfm-link">'.$song.'</a>';
 				$html .= '</span>';
 				$html .= '</li>';
 			}
 			$html .= '</ul>';
 		} else {
-		$html = '';
+		$html .= '';
+		}
+		
+		// Top Artists
+		$tarxml = simplexml_load_file('http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&period='.$this->database('period_tar').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api);
+		
+		// Show Top Artists
+		if($this->database('ability_tar') == 'enable') {
+			$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_MSG').':'));
+			$html .= '<ul class="lastfm">';
+
+			foreach($tarxml->topartists->artist as $artist) {
+				$name  = $artist->name;
+				$link  = $artist->url;
+				$count = $artist->playcount;
+				
+				$html .= '<li class"lastfm-items">';
+				$html .= '<span style="font-size: smaller">';
+				$html .= '◕ <a href="'.$link.'" class="lastfm-link">'.$name.'</a> ('.$count.' plays)';
+				$html .= '</span>';
+				$html .= '</li>';
+			}
+			$html .= '</ul>';
+		} else {
+		$html .= '';
+		}
+		
+		// Top Albums
+		$talxml = simplexml_load_file('http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&period='.$this->database('period_tal').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api);
+		
+		// Show Top Albums
+		if($this->database('ability_tal') == 'enable') {
+			$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_MSG').':'));
+			$html .= '<ul class="lastfm">';
+
+			foreach($talxml->topalbums->album as $album) {
+				$name  = $album->name;
+				$link  = $album->url;
+				$count = $album->playcount;
+				
+				$html .= '<li class"lastfm-items">';
+				$html .= '<span style="font-size: smaller">';
+				$html .= '◕ <a href="'.$link.'" class="lastfm-link">'.$name.'</a> ('.$count.' plays)';
+				$html .= '</span>';
+				$html .= '</li>';
+			}
+			$html .= '</ul>';
+		} else {
+		$html .= '';
+		}
+		
+		// Top Tracks
+		$ttrxml = simplexml_load_file('http://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&period='.$this->database('period_ttr').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api);
+		
+		// Show Top Tracks
+		if($this->database('ability_ttr') == 'enable') {
+			$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_AMOUNT').':'));
+			$html .= '<ul class="lastfm">';
+
+			foreach($ttrxml->toptracks->track as $track) {
+				$name  = $track->name;
+				$link  = $track->url;
+				$count = $track->playcount;
+				
+				$html .= '<li class"lastfm-items">';
+				$html .= '<span style="font-size: smaller">';
+				$html .= '◕ <a href="'.$link.'" class="lastfm-link">'.$name.'</a> ('.$count.' plays)';
+				$html .= '</span>';
+				$html .= '</li>';
+			}
+			$html .= '</ul>';
+		} else {
+		$html .= '';
 		}
 		
 		return $html;
