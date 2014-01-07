@@ -2,7 +2,7 @@
 
 $_PLUGIN_CONFIG['LANG'] = array(
 	'NAME'=>'Last.FM Panel',
-	'DESCRIPTION'=>'Shows a Last.FM panel on the plugins panel. Can show Recent Tracks (including currently listening track, Top Albums, Top Tracks and Top Artists.',
+	'DESCRIPTION'=>'Shows a Last.FM panel on the plugins panel. Can show Recent Tracks (including currently listening track, Top Albums, Top Tracks and Top Artists. All information are called by the official Last.FM API.',
 	'USERNAME'=>'Your Last.FM username',
 	//'API_KEY'=>'Your Last.FM API key',
 	'RECENT_TRACKS_ABILITY'=>'Recent Tracks',
