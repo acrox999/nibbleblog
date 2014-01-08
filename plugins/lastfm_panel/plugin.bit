@@ -4,7 +4,7 @@
 // =====================================================================
 $_PLUGIN_CONFIG['DATA'] = array(
 	'author'=>'Hakim Zulkufli',
-	'version'=>'1.0',
+	'version'=>'1.1',
 	'url'=>'http://k0n3k.tk'
 );
 
@@ -63,7 +63,7 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 		
 		// Period of Top Artists
 		$html .= Html::label(array('content'=>$Language->get('PERIOD_TAR')));
-		$html .= Html::select(array('name'=>'period_tar'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3 month'=>'3 months', '6 month'=>'6 months', '12 months'=>'12 months'), $this->database('period_tar'));
+		$html .= Html::select(array('name'=>'period_tar'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3month'=>'3 months', '6month'=>'6 months', '12months'=>'12 months'), $this->database('period_tar'));
 		
 		// Enable or disable Top Albums
 		$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_ABILITY')));
@@ -75,7 +75,7 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 		
 		// Period of Top Albums
 		$html .= Html::label(array('content'=>$Language->get('PERIOD_TAL')));
-		$html .= Html::select(array('name'=>'period_tal'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3 month'=>'3 months', '6 month'=>'6 months', '12 months'=>'12 months'), $this->database('period_tal'));
+		$html .= Html::select(array('name'=>'period_tal'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3month'=>'3 months', '6month'=>'6 months', '12months'=>'12 months'), $this->database('period_tal'));
 		
 		// Enable or disable Top Tracks
 		$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_ABILITY')));
@@ -87,7 +87,7 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 		
 		// Period of Top Tracks
 		$html .= Html::label(array('content'=>$Language->get('PERIOD_TTR')));
-		$html .= Html::select(array('name'=>'period_ttr'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3 month'=>'3 months', '6 month'=>'6 months', '12 months'=>'12 months'), $this->database('period_ttr'));
+		$html .= Html::select(array('name'=>'period_ttr'), array('overall'=>'Overall', '7day'=>'7 days', '1month'=>'1 month', '3month'=>'3 months', '6month'=>'6 months', '12months'=>'12 months'), $this->database('period_ttr'));
 		
 		return $html;
 		
@@ -100,28 +100,61 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 		// Set Predefined API Key
 		$api = 'b8d95a731d043ce8fae0203dcb3f5f54';
 		
-		$html = '<p><a href="http://www.last.fm/user/'.$this->database('username').'">My Last.FM</a></p>';
+		// User Info
+		$uijson = file_get_contents('http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user='.$this->database('username').'&api_key='.$api.'&format=json');
+		$ui = json_decode($uijson);
+		
+		// Get User information
+		$name  = $ui->user->name;
+		$url   = $ui->user->url;
+		$count = $ui->user->playcount;
+		$image = $ui->user->image[3]->{'#text'};
+		
+		// Show User Info
+		$html  = '<ul class="lastfm">';
+		$html .= '<li>';
+		$html .= '<span align="center">';
+		$html .= '<div style="width: 100%">';
+		$html .= '<a href="'.$url.'"><img alt="'.$this->database('username').'" src="'.$image.'" style="width: 100%; height: auto;" /></a>';
+		$html .= '</span></div>';
+		$html .= '<li class"lastfm-items">';
+		$html .= '<a href="'.$url.'" class="lastfm-link">'.$name.'</a>';
+		$html .= '</li>';
+		$html .= '<li class"lastfm-items">';
+		$html .= 'Playcount: '.$count;
+		$html .= '</li>';
+		$html .= '</ul>';
 		
 		// Recent Tracks
-		$rtxml = simplexml_load_file('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&extended=1&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api);
-		
-		// Show Recent Tracks
 		if($this->database('ability_rt') == 'enable') {
-			// Now Playing
-			$track  = $rtxml->recenttracks->track[0];
-			$song   = $rtxml->recenttracks->track[0]->name;
-			$artist = $rtxml->recenttracks->track[0]->artist->name;
-			$alink  = $rtxml->recenttracks->track[0]->artist->url;
-			$slink  = $rtxml->recenttracks->track[0]->url;
 			
-			$html .= Html::label(array('content'=>$Language->get('NOW_PLAYING').':'));
-			$html .= '<p style="font-size: smaller"><a href="http://www.last.fm/artist/'.$alink.'" class="lastfm-link">'.$artist.'</a> - <a href="'.$slink.'" class="lastfm-link">'.$song.'</a></p>';
+			$rtjson = file_get_contents('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&extended=1&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api.'&format=json');
+			$rt = json_decode($rtjson);
 			
-			// Recently Played Tracks
-			$html .= Html::label(array('content'=>$Language->get('RECENT_TRACKS_MSG').':'));
+			// Get information for Now Playing
+			$song   = $rt->recenttracks->track[0]->name;
+			$artist = $rt->recenttracks->track[0]->artist->name;
+			$alink  = $rt->recenttracks->track[0]->artist->url;
+			$slink  = $rt->recenttracks->track[0]->url;
+			$image  = $rt->recenttracks->track[0]->artist->image[3]->{'#text'};
+			
+			// Show Now Playing
+			$html .= Html::label(array('content'=>$Language->get('NOW_PLAYING')));
 			$html .= '<ul class="lastfm">';
-
-			foreach($rtxml->recenttracks->track as $track) {
+			$html .= '<div style="width: 100%; height: 100%">';
+			$html .= '<table><tbody><tr>';
+			$html .= '<td><a href="'.$slink.'"><img alt="'.$song.'" src="'.$image.'" style="width: 100%; height: auto" /></a></td>';
+			$html .= '<td><a href="'.$slink.'" class="lastfm-link">'.$song.'</a> by <a href="http://www.last.fm/artist/'.$alink.'" class="lastfm-link">'.$artist.'</a></td>';
+			$html .= '</tr></tbody></table>';
+			$html .= '</div>';
+			$html .= '</li>';
+			$html .= '</ul>';
+			
+			// Show Recently Played Tracks
+			$html .= Html::label(array('content'=>$Language->get('RECENT_TRACKS_MSG')));
+			
+			$html .= '<ul class="lastfm">';
+			foreach($rt->recenttracks->track as $track) {
 				$song   = $track->name;
 				$artist = $track->artist->name;
 				$alink  = $track->artist->url;
@@ -139,14 +172,29 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 		}
 		
 		// Top Artists
-		$tarxml = simplexml_load_file('http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&period='.$this->database('period_tar').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api);
-		
-		// Show Top Artists
 		if($this->database('ability_tar') == 'enable') {
-			$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_MSG').':'));
-			$html .= '<ul class="lastfm">';
+		
+			$tarjson = file_get_contents('http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&period='.$this->database('period_tar').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api.'&format=json');
+			$tar = json_decode($tarjson);
+			
+			// Show message for selected period
+			if($this->database('period_tar') == 'overall'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_MSG').' ('.$Language->get('PERIOD_OVERALL').')'));
+			} elseif($this->database('period_tar') == '7day'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_MSG').' ('.$Language->get('PERIOD_7DAYS').')'));
+			} elseif($this->database('period_tar') == '1month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_MSG').' ('.$Language->get('PERIOD_1MONTH').')'));
+			} elseif($this->database('period_tar') == '3month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_MSG').' ('.$Language->get('PERIOD_3MONTHS').')'));
+			} elseif($this->database('period_tar') == '6month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_MSG').' ('.$Language->get('PERIOD_6MONTHS').')'));
+			} elseif($this->database('period_tar') == '12month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ARTISTS_MSG').' ('.$Language->get('PERIOD_12MONTHS').')'));
+			} endif;
 
-			foreach($tarxml->topartists->artist as $artist) {
+			// Show Top Artists
+			$html .= '<ul class="lastfm">';
+			foreach($tar->topartists->artist as $artist) {
 				$name  = $artist->name;
 				$link  = $artist->url;
 				$count = $artist->playcount;
@@ -163,14 +211,29 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 		}
 		
 		// Top Albums
-		$talxml = simplexml_load_file('http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&period='.$this->database('period_tal').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api);
-		
-		// Show Top Albums
 		if($this->database('ability_tal') == 'enable') {
-			$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_MSG').':'));
-			$html .= '<ul class="lastfm">';
+		
+			$taljson = file_get_contents('http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&period='.$this->database('period_tal').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api.'&format=json');
+			$tal = json_decode($taljson);
+		
+			// Show message for selected period
+			if($this->database('period_tal') == 'overall'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_MSG').' ('.$Language->get('PERIOD_OVERALL').')'));
+			} elseif($this->database('period_tal') == '7day'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_MSG').' ('.$Language->get('PERIOD_7DAYS').')'));
+			} elseif($this->database('period_tal') == '1month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_MSG').' ('.$Language->get('PERIOD_1MONTH').')'));
+			} elseif($this->database('period_tal') == '3month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_MSG').' ('.$Language->get('PERIOD_3MONTHS').')'));
+			} elseif($this->database('period_tal') == '6month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_MSG').' ('.$Language->get('PERIOD_6MONTHS').')'));
+			} elseif($this->database('period_tal') == '12month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_ALBUMS_MSG').' ('.$Language->get('PERIOD_12MONTHS').')'));
+			} endif;
 
-			foreach($talxml->topalbums->album as $album) {
+			// Show Top Albums
+			$html .= '<ul class="lastfm">';
+			foreach($tal->topalbums->album as $album) {
 				$name  = $album->name;
 				$link  = $album->url;
 				$count = $album->playcount;
@@ -187,14 +250,29 @@ class PLUGIN_LASTFM_PANEL extends Plugin
 		}
 		
 		// Top Tracks
-		$ttrxml = simplexml_load_file('http://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&period='.$this->database('period_ttr').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api);
-		
-		// Show Top Tracks
 		if($this->database('ability_ttr') == 'enable') {
-			$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_AMOUNT').':'));
+		
+			$ttrjson = file_get_contents('http://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&period='.$this->database('period_ttr').'&limit='.$this->database('amount_rt').'&user='.$this->database('username').'&api_key='.$api.'&format=json');
+			$ttr = json_decode($ttrjson);
+		
+			// Show message for selected period
+			if($this->database('period_ttr') == 'overall'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_MSG').' ('.$Language->get('PERIOD_OVERALL').')'));
+			} elseif($this->database('period_ttr') == '7day'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_MSG').' ('.$Language->get('PERIOD_7DAYS').')'));
+			} elseif($this->database('period_ttr') == '1month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_MSG').' ('.$Language->get('PERIOD_1MONTH').')'));
+			} elseif($this->database('period_ttr') == '3month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_MSG').' ('.$Language->get('PERIOD_3MONTHS').')'));
+			} elseif($this->database('period_ttr') == '6month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_MSG').' ('.$Language->get('PERIOD_6MONTHS').')'));
+			} elseif($this->database('period_ttr') == '12month'): {
+				$html .= Html::label(array('content'=>$Language->get('TOP_TRACKS_MSG').' ('.$Language->get('PERIOD_12MONTHS').')'));
+			} endif;
+			
+			// Show Top Tracks
 			$html .= '<ul class="lastfm">';
-
-			foreach($ttrxml->toptracks->track as $track) {
+			foreach($ttr->toptracks->track as $track) {
 				$name  = $track->name;
 				$link  = $track->url;
 				$count = $track->playcount;

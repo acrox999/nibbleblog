@@ -2,7 +2,7 @@
 
 $_PLUGIN_CONFIG['LANG'] = array(
 	'NAME'=>'Last.FM Panel',
-	'DESCRIPTION'=>'Shows a Last.FM panel on the plugins panel. Can show Recent Tracks (including currently listening track, Top Albums, Top Tracks and Top Artists. All information are called by the official Last.FM API.',
+	'DESCRIPTION'=>'Shows a Last.FM panel on the plugins panel. Can show Recent Tracks (including currently listening track, Top Albums, Top Tracks and Top Artists. All information are called by the official Last.FM JSON API.',
 	'USERNAME'=>'Your Last.FM username',
 	//'API_KEY'=>'Your Last.FM API key',
 	'RECENT_TRACKS_ABILITY'=>'Recent Tracks',
@@ -20,7 +20,13 @@ $_PLUGIN_CONFIG['LANG'] = array(
 	'RECENT_TRACKS_MSG'=>'Recently Played Tracks',
 	'TOP_ARTISTS_MSG'=>'Top Artists',
 	'TOP_ALBUMS_MSG'=>'Top Albums',
-	'TOP_TRACKS_AMOUNT'=>'Top Tracks'
+	'TOP_TRACKS_MSG'=>'Top Tracks',
+	'PERIOD_OVERALL'=>'overall',
+	'PERIOD_7DAYS'=>'for the past week',
+	'PERIOD_1MONTH'=>'for the past month',
+	'PERIOD_3MONTHS'=>'for the past three months',
+	'PERIOD_6MONTHS'=>'for the past six months',
+	'PERIOD_12MONTHS'=>'for the past year'
 );
 
 ?>
